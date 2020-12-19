@@ -6,10 +6,10 @@
 #include <fstream>
 #include "test.h"
 using namespace std;
-#define TEST 500
+#define TEST 1000
 #define MAX_K 8
-#define MINLEN 64
-#define MAXLEN 128
+#define MINLEN 128
+#define MAXLEN 512
 
 char str_1[MAXLEN + 10];
 char str_2[MAXLEN + 10];
@@ -21,6 +21,7 @@ clock_t clock_01 = 0;
 clock_t clock_02 = 0;
 clock_t clock_01_matchlist = 0;
 clock_t clock_02_matchlist = 0;
+clock_t clock_03 = 0;
 
 void PrintProcess(unsigned int percent) {
     /* 进度条缓冲区 */
@@ -45,6 +46,7 @@ void PrintProcess(unsigned int percent) {
         printf("total time 1(no matchlist): %.8fs\n", (double)(clock_01 - clock_01_matchlist) / (double)CLOCKS_PER_SEC);
         printf("total time 2: %.8fs\n", (double)(clock_02) / (double)CLOCKS_PER_SEC);
         printf("total time 2(no matchlist): %.8fs\n", (double)(clock_02 - clock_02_matchlist) / (double)CLOCKS_PER_SEC);
+        printf("total time 3: %.8fs\n", (double)(clock_03) / (double)CLOCKS_PER_SEC);
     }
     fflush(stdout);
 }
@@ -55,7 +57,7 @@ int main()
     error = 0;
     correct = 0;
     srand((unsigned)time(NULL));
-    printf("\ntest information:\nn: %d~%d\nk: %d~%d\n\n", MINLEN, MAXLEN, 1, MAX_K);
+    printf("\ntest information:\nn: %d~%d\nk: %d~%d\ntest cases: %d\n\n", MINLEN, MAXLEN, 1, MAX_K, TEST);
     for(int i = 0; i < TEST; i++) {
         memset(str_1, 0, sizeof(str_1));
         memset(str_2, 0, sizeof(str_2));
@@ -77,17 +79,23 @@ int main()
 
         start_t = clock();
         int test_02_res = get_res_test_02(k, n, str_1, str_2);
+        // int test_02_res = test_01_res;
         end_t = clock();
         clock_02 += (end_t - start_t);
         
-        if(test_01_res == test_02_res) {
+        start_t = clock();
+        int test_03_res = get_res_test_03(k, n, str_1, str_2);
+        end_t = clock();
+        clock_03 += (end_t - start_t);
+
+        if(test_01_res == test_02_res && test_02_res == test_03_res) {
             correct++;
         }
         else {
             error++;
             char Buf[256];
             memset(Buf, 0, sizeof(Buf));
-            sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_01_res: %d\ntest_02_res: %d\n\n", error, n, k, str_1, str_2, test_01_res, test_02_res);
+            sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_01_res: %d\ntest_02_res: %d\ntest_03_res: %d\n\n", error, n, k, str_1, str_2, test_01_res, test_02_res, test_03_res);
             fputs(Buf, file);
         }
         PrintProcess((i * 100) / TEST);
