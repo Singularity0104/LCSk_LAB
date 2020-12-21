@@ -48,17 +48,11 @@ static void DP() {
             }
         }
     }
-    // for(int i = 0; i < size_1; i++) {
-    //     for(int j = 0; j < size_2; j++) {
-    //         cout << DP_mat[i * size_2 + j] << " ";
-    //     }
-    //     cout << endl;
-    // }
     res = DP_mat[size_1 * size_2 - 1];
     delete []DP_mat;
 }
 
-int get_res_test_00(int K, int SIZE, char *STR_1, char *STR_2) {
+int get_res_test_DP(int K, int SIZE, char *STR_1, char *STR_2) {
     k = K;
     size_1 = SIZE;
     size_2 = SIZE;
@@ -67,14 +61,3 @@ int get_res_test_00(int K, int SIZE, char *STR_1, char *STR_2) {
     DP();
     return res;
 }
-
-// int main()
-// {
-//     str_1 = "aabababab";
-//     str_2 = "abbababaa";
-//     size_1 = 9;
-//     size_2 = 9;
-//     k = 2;
-//     DP();
-//     return 0;
-// }

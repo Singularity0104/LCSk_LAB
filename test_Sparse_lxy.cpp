@@ -136,6 +136,7 @@
 #include <cstring>
 #include <string>
 #include "test.h"
+#include "MATCHLIST.hpp"
 using namespace std;
 
 static int N;
@@ -251,7 +252,7 @@ static int CR()
     }
     return THRESH[N].size() - 2;
 } */
-int get_res_test_02(int K, int SIZE, char *STR_1, char *STR_2) {
+int get_res_test_sparse(int K, int SIZE, char *STR_1, char *STR_2) {
     N = SIZE;
     k = K;
     clock_t start_t, end_t;

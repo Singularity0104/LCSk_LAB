@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <map>
 #include "test.h"
+#include "MATCHLIST.hpp"
 using namespace std;
 #define DEBUG 1
 #define PINF INT_MAX
@@ -162,7 +163,7 @@ static void LCSk() {
     end();
 }
 
-int get_res_test_01(int K, int SIZE, char *STR_1, char *STR_2) {
+int get_res_test_sparse(int K, int SIZE, char *STR_1, char *STR_2) {
     k = K;
     size_1 = SIZE;
     size_2 = SIZE;
