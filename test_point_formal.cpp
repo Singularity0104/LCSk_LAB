@@ -7,13 +7,14 @@
 #include "test.h"
 using namespace std;
 
-#define TEST 50
+#define TEST 1000
 #define MIN_CHAR 'a'
-#define MAX_CHAR 'd'
-#define MIN_K 8
-#define MAX_K 8
-#define MINLEN 4096
-#define MAXLEN 4096
+#define MAX_CHAR 'z'
+#define MIN_K 1
+#define MAX_K 1
+#define MINLEN 512
+#define MAXLEN 512
+#define PRINTERROR 1
 
 char str_1[MAXLEN + 10];
 char str_2[MAXLEN + 10];
@@ -29,6 +30,10 @@ clock_t clock_Dense_matchlist = 0;
 unsigned long long LCSk_sum = 0;
 
 void print_head() {
+    for(int i = 0; i < 52; i++) {
+        printf("-");
+    }
+    printf("\n");
     printf("| %-14s | %-14s | %-14s |\n", "Algorithm", "Totol T", "Average T");
     for(int i = 0; i < 52; i++) {
         printf("-");
@@ -71,8 +76,10 @@ void PrintProcess(unsigned int percent) {
         memset(processbar, '>', 50);
         printf("Testing: [%s] Done\r", processbar);
         printf("\n\n");
+#if PRINTERROR
         printf("Correct: %d\n", correct);
         printf("Error: %d\n", error);
+#endif
         print_head();
         print_row("DP", clock_DP, TEST);
         print_row("Matchlist", (clock_Sparse_matchlist + clock_Dense_matchlist) / 2, 2 * TEST);

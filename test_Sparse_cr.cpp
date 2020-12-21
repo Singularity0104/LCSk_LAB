@@ -35,8 +35,8 @@ static int32_t sparse() {
     for(int i = k; i <= N; i++) {
         THRESH[i] = THRESH[i-1];
         int colomn = 0;
-        int fb = X[i + N].fb_pos;
-        int fa = X[i + N].fa_pos;
+        int fb = X[i + N - k + 1].fb_pos;
+        int fa = X[i + N - k + 1].fa_pos;
         for(int pos = fb; pos < fa; pos++) {
             int x = S[pos].start_pos;
             map<int,int>::iterator p = THRESH[i-k].end();p--;
