@@ -6,10 +6,11 @@
 #include <fstream>
 #include "test.h"
 using namespace std;
-#define TEST 1000
-#define MAX_K 8
-#define MINLEN 128
-#define MAXLEN 512
+#define TEST 500
+#define MIN_K 16
+#define MAX_K 16
+#define MINLEN 1024
+#define MAXLEN 1024
 
 char str_1[MAXLEN + 10];
 char str_2[MAXLEN + 10];
@@ -17,11 +18,16 @@ int k;
 int n;
 int error = 0;
 int correct = 0;
+clock_t clock_00 = 0;
 clock_t clock_01 = 0;
 clock_t clock_02 = 0;
+clock_t clock_03 = 0;
+clock_t clock_04 = 0;
 clock_t clock_01_matchlist = 0;
 clock_t clock_02_matchlist = 0;
-clock_t clock_03 = 0;
+clock_t clock_03_matchlist = 0;
+clock_t clock_04_matchlist = 0;
+
 
 void PrintProcess(unsigned int percent) {
     /* 进度条缓冲区 */
@@ -31,22 +37,27 @@ void PrintProcess(unsigned int percent) {
     /* 绘制正常进度条 */
     if (percent <= 100)
     {
-        memset(processbar, '#', percent / 2);
+        memset(processbar, '>', percent / 2);
         printf("testing: [%s] %d%%\r", processbar, percent);
         /* 绘制完成后的进度条 */
     }
     else
     {
-        memset(processbar, '#', 50);
+        memset(processbar, '>', 50);
         printf("testing: [%s] Done\r", processbar);
-        printf("\n");
+        printf("\n\n");
         printf("correct: %d\n", correct);
         printf("error: %d\n", error);
+        printf("total time 0: %.8fs\n", (double)(clock_00) / (double)CLOCKS_PER_SEC);
         printf("total time 1: %.8fs\n", (double)(clock_01) / (double)CLOCKS_PER_SEC);
         printf("total time 1(no matchlist): %.8fs\n", (double)(clock_01 - clock_01_matchlist) / (double)CLOCKS_PER_SEC);
         printf("total time 2: %.8fs\n", (double)(clock_02) / (double)CLOCKS_PER_SEC);
         printf("total time 2(no matchlist): %.8fs\n", (double)(clock_02 - clock_02_matchlist) / (double)CLOCKS_PER_SEC);
         printf("total time 3: %.8fs\n", (double)(clock_03) / (double)CLOCKS_PER_SEC);
+        printf("total time 3(no matchlist): %.8fs\n", (double)(clock_03 - clock_03_matchlist) / (double)CLOCKS_PER_SEC);
+        printf("total time 4: %.8fs\n", (double)(clock_04) / (double)CLOCKS_PER_SEC);
+        printf("total time 4(no matchlist): %.8fs\n", (double)(clock_04 - clock_04_matchlist) / (double)CLOCKS_PER_SEC);
+
     }
     fflush(stdout);
 }
@@ -56,12 +67,13 @@ int main()
     FILE *file = fopen("./log.txt", "w+");
     error = 0;
     correct = 0;
-    srand((unsigned)time(NULL));
-    printf("\ntest information:\nn: %d~%d\nk: %d~%d\ntest cases: %d\n\n", MINLEN, MAXLEN, 1, MAX_K, TEST);
+    // srand((unsigned)time(NULL));
+    srand(clock());
+    printf("\ntest information:\nn: %d~%d\nk: %d~%d\ntest cases: %d\n\n", MINLEN, MAXLEN, MIN_K, MAX_K, TEST);
     for(int i = 0; i < TEST; i++) {
         memset(str_1, 0, sizeof(str_1));
         memset(str_2, 0, sizeof(str_2));
-        k = 1 + rand() % MAX_K;
+        k = MIN_K + rand() % (MAX_K - MIN_K + 1);
         n = MINLEN + rand() % (MAXLEN - MINLEN + 1);
         for(int j = 0; j < n; j++) {
             str_1[j] = 'a' + rand() % ('z' - 'a' + 1);
@@ -72,6 +84,11 @@ int main()
 
         clock_t start_t, end_t;
         start_t = clock();
+        int test_00_res = get_res_test_00(k, n, str_1, str_2);
+        end_t = clock();
+        clock_00 += (end_t - start_t);
+
+        start_t = clock();
         int test_01_res = get_res_test_01(k, n, str_1, str_2);
         // int test_01_res = 0;
         end_t = clock();
@@ -79,23 +96,33 @@ int main()
 
         start_t = clock();
         int test_02_res = get_res_test_02(k, n, str_1, str_2);
-        // int test_02_res = test_01_res;
+        // int test_02_res = test_00_res;
         end_t = clock();
         clock_02 += (end_t - start_t);
-        
+
         start_t = clock();
         int test_03_res = get_res_test_03(k, n, str_1, str_2);
+        // int test_03_res = test_00_res;
         end_t = clock();
         clock_03 += (end_t - start_t);
 
-        if(test_01_res == test_02_res && test_02_res == test_03_res) {
+        start_t = clock();
+        int test_04_res = get_res_test_04(k, n, str_1, str_2);
+        // int test_04_res = test_00_res;
+        end_t = clock();
+        clock_04 += (end_t - start_t);
+
+        
+        
+
+        if(test_00_res == test_01_res && test_01_res == test_02_res && test_02_res == test_03_res && test_03_res == test_04_res) {
             correct++;
         }
         else {
             error++;
-            char Buf[256];
+            char Buf[4096];
             memset(Buf, 0, sizeof(Buf));
-            sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_01_res: %d\ntest_02_res: %d\ntest_03_res: %d\n\n", error, n, k, str_1, str_2, test_01_res, test_02_res, test_03_res);
+            sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_00_res: %d\ntest_01_res: %d\ntest_02_res: %d\ntest_03_res: %d\ntest_04_res: %d\n\n", error, n, k, str_1, str_2, test_00_res, test_01_res, test_02_res, test_03_res, test_04_res);
             fputs(Buf, file);
         }
         PrintProcess((i * 100) / TEST);

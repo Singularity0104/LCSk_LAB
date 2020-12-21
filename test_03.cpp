@@ -1,80 +1,86 @@
 #include <iostream>
+#include <cstdio>
 #include <cstring>
-#include <limits.h>
-#include <string.h>
-#include <assert.h>
 #include <map>
+#include <ctime>
 #include "test.h"
 using namespace std;
 
-static int k;
-static char *str_1;
-static char *str_2;
-static int size_1;
-static int size_2;
-static int res;
-static int *DP_mat;
+#define inf 0x3fffffff
+#define einf -1
+#define END -2
 
-void DP() {
-    size_1++;
-    size_2++;
-    DP_mat = new int[size_1 * size_2];
-    for(int i = 0; i < size_1; i++) {
-        for(int j = 0; j < size_2; j++) {
-            if(i < k || j < k) {
-                // cout << "pass" << endl;
-                DP_mat[i * size_2 + j] = 0;
-                continue;
-            }
-            int flag = 1;
-            for(int z = 1; z <= k; z++) {
-                if(str_1[i - z] != str_2[j - z]) {
-                    flag = 0;
-                    break;
+static int N;
+static int k;
+static int *MATCHLIST;
+// static map<int,int> THRESH[10001];             // < h, j >
+static map<int,int> *THRESH;
+
+static char *get_k_string(char *str, int index) {
+    if(index < k - 1) {
+        return NULL;
+    }
+    return &str[index - k + 1];
+}
+static void compute_MATCHLIST(char *str_1, char *str_2) {
+    char *substring_A;
+    char *substring_B;
+    for(int i = 0; i < N; i++) {
+        substring_A = get_k_string(str_1, i);
+        int colomn = 0;
+        if(substring_A != NULL) {
+            for(int j = k - 1; j < N; j++) {
+                substring_B = get_k_string(str_2, j);
+                int cmp = 1;
+                for(int z = 0; z < k; z++) {
+                    if(substring_A[z] != substring_B[z]) {
+                        cmp = 0;
+                    }
                 }
-            }
-            if(flag == 1) {
-                // cout << "hit" << endl;
-                DP_mat[i * size_2 + j] = DP_mat[(i - k) * size_2 + j - k] + 1;
-            }
-            else {
-                // cout << "miss" << endl;
-                if(DP_mat[(i - 1) * size_2 + j] > DP_mat[i * size_2 + j - 1]) {
-                    DP_mat[i * size_2 + j] = DP_mat[(i - 1) * size_2 + j];
-                }
-                else {
-                    DP_mat[i * size_2 + j] = DP_mat[i * size_2 + j - 1];
+                if(cmp == 1) {
+                    MATCHLIST[i * (N + 1) + colomn] = j;
+                    colomn++;
                 }
             }
         }
+         MATCHLIST[i * (N + 1) + colomn] = END;
     }
-    // for(int i = 0; i < size_1; i++) {
-    //     for(int j = 0; j < size_2; j++) {
-    //         cout << DP_mat[i * size_2 + j] << " ";
-    //     }
-    //     cout << endl;
-    // }
-    res = DP_mat[size_1 * size_2 - 1];
-    delete []DP_mat;
+    return;
+}
+
+static int32_t f_cr() {
+    THRESH[0][0] = einf;    THRESH[0][1] = inf;
+    for(int i = 1; i <= k - 1; i++) THRESH[i] = THRESH[i-1];
+    for(int i = k; i <= N; i++) {
+        THRESH[i] = THRESH[i-1];
+        int colomn = 0;
+        while (true) {
+            int x = MATCHLIST[(i - 1) * (N + 1) + colomn++];
+            if(x == END) break;
+            map<int,int>::iterator p = THRESH[i-k].end();   p--;
+            for(p; p != THRESH[i-k].begin(); p--) {
+                if(p->second < x - k + 1) break;
+            }
+            int h = p->first;
+            int j2 = THRESH[i][h+1];
+            if(x < j2) {
+                THRESH[i][h+1] = x;
+                if(j2 == inf) THRESH[i][h+2] = inf;
+            }
+        }
+    }
+    return THRESH[N].size() - 2;
 }
 
 int get_res_test_03(int K, int SIZE, char *STR_1, char *STR_2) {
-    k = K;
-    size_1 = SIZE;
-    size_2 = SIZE;
-    str_1 = STR_1;
-    str_2 = STR_2;
-    DP();
-    return res;
+    k = K; N = SIZE; clock_t start_t, end_t;
+    MATCHLIST = new int [N * (N + 1)];
+    THRESH = new map<int,int>[N + 1];
+    start_t = clock();
+    compute_MATCHLIST(STR_1, STR_2);
+    end_t = clock();
+    clock_03_matchlist += (end_t - start_t);
+    int ans_cr = f_cr();
+    delete [] MATCHLIST;
+    return ans_cr;
 }
-
-// int main()
-// {
-//     str_1 = "aabababab";
-//     str_2 = "abbababaa";
-//     size_1 = 9;
-//     size_2 = 9;
-//     k = 2;
-//     DP();
-//     return 0;
-// }

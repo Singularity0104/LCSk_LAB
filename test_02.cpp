@@ -144,7 +144,7 @@ static int matchlist[10000][10000];
 #define inf 0x3fffffff
 #define einf -100
 static map<int, int> THRESH[10000];
-void get_match_list(char *A, char *B)
+static void get_match_list(char *A, char *B)
 {
     memset(matchlist, 0, sizeof(matchlist));
     for (int i = 0; i < N - k + 1; i++)
@@ -167,68 +167,39 @@ void get_match_list(char *A, char *B)
         }
     }
 }
-int find_h(int i, int j)
+static int find_h(int i, int j)
 {
-
-    int sz = THRESH[i].size();
-    int left = 0;
-    int right = sz-1;
-    int mid = (left + right) / 2;
+    // int sz=THRESH[i].size();
     // for (int x = 0; x < sz; x++)
     // {
     //     if (THRESH[i][x] < j) {}
     //     else
     //         return x - 1;
     // }
-    while (!(THRESH[i][mid] < j && THRESH[i][mid + 1] >= j))
-    {
-        if (THRESH[i][mid + 1] < j)
-        {
-            left = mid;
-            mid = (left + right) / 2;
-        }
-        if (THRESH[i][mid] >= j)
-        {
-            right = mid;
-            mid = (left + right) / 2;
-        }
+    map<int,int>::iterator p = THRESH[i].end(); p--;
+    for(p; p != THRESH[i].begin(); p--) {
+        if(p->second < j) break;
     }
-    return mid;
+    return p->first;
 }
 
-int CR()
+
+static int CR()
 {
     THRESH[0].insert(pair<int, int>(0, einf));
     THRESH[0].insert(pair<int, int>(1, inf));
-    for (int i = 1; i <= k - 1; ++i)
+    for (int i = 1; i <= k - 1; i++)
     {
         THRESH[i] = THRESH[i - 1];
     }
-    for (int i = k; i <= N; ++i)
+    for (int i = k; i <= N; i++)
     {
         THRESH[i] = THRESH[i - 1];
         for (int j = k; j <= N; ++j)
         {
             if (matchlist[i - 1][j - 1] == 1)
             {
-                int sz = THRESH[i-k].size();
-                int left = 0;
-                int right = sz - 1;
-                int mid = (left + right) / 2;
-                while (!(THRESH[i-k][mid] < j-k+1 && THRESH[i-k][mid + 1] >= j-k+1))
-                {
-                    if (THRESH[i-k][mid + 1] < j-k+1)
-                    {
-                        left = mid;
-                        mid = (left + right) / 2;
-                    }
-                    if (THRESH[i-k][mid] >= j-k+1)
-                    {
-                        right = mid;
-                        mid = (left + right) / 2;
-                    }
-                }
-                int h = mid;
+                int h = find_h(i-k,j-k+1);
                 int j2 = THRESH[i][h + 1];
                 if (j < j2)
                 {
