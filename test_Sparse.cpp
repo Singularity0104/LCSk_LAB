@@ -10,14 +10,10 @@ using namespace std;
 
 extern suffix S[1000000]; // S数组
 extern suffix X[1000000]; // X数组
-
+extern clock_t clock_Sparse_matchlist;
 static int N;
 static int k;
-// static int *MATCHLIST;
-// static map<int,int> THRESH[10001];             // < h, j >
 static map<int, int> *THRESH;
-
-extern clock_t clock_Sparse_matchlist;
 
 static char *get_k_string(char *str, int index)
 {
@@ -28,7 +24,7 @@ static char *get_k_string(char *str, int index)
     return &str[index - k + 1];
 }
 
-static int32_t sparse()
+static int sparse()
 {
     THRESH[0][0] = einf;
     THRESH[0][1] = inf;
@@ -67,8 +63,8 @@ int get_res_test_Sparse(int K, int SIZE, char *STR_1, char *STR_2)
 {
     k = K;
     N = SIZE;
-    clock_t start_t, end_t;
     THRESH = new map<int, int>[N + 1];
+    clock_t start_t, end_t;
     start_t = clock();
     preprocess(STR_1, STR_2, K);
     end_t = clock();

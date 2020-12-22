@@ -4,17 +4,16 @@
 #include "MatchList.hpp"
 using namespace std;
 
-static int N;
-static int k;
 #define inf 0x3fffffff
 #define einf -100
 #define MAXN inf
-static map<int, int> THRESH[10000];
 
 extern suffix S[1000000]; // S数组
 extern suffix X[1000000]; // X数组
-
 extern clock_t clock_Dense_matchlist;
+static int N;
+static int k;
+static map<int, int> *THRESH;
 
 int Dense()
 {
@@ -59,10 +58,13 @@ int get_res_test_Dense(int K, int SIZE, char *STR_1, char *STR_2)
 {
     N = SIZE;
     k = K;
+    THRESH = new map<int, int>[N + 1];
     clock_t start_t, end_t;
     start_t = clock();
     preprocess(STR_1, STR_2, k);
     end_t = clock();
     clock_Dense_matchlist += (end_t - start_t);
-    return Dense();
+    int ans = Dense();
+    delete[] THRESH;
+    return ans;
 }

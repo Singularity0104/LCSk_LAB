@@ -1,6 +1,8 @@
-main: test_point.cpp MatchList.cpp test_DP.cpp test_Sparse.cpp test_Dense.cpp test.hpp MatchList.hpp
-	g++ -o main test_point.cpp MatchList.cpp test_DP.cpp test_Sparse.cpp test_Dense.cpp test.hpp MatchList.hpp
+main: test_point.o MatchList.o test_DP.o test_Sparse.o test_Dense.o
+	g++ -o $@ $^
+%.o: %.c
+	g++ -c -o $@ $^
 run: main
 	./main
 clean:
-	rm ./main
+	rm ./main *.o
