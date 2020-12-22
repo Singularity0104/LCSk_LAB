@@ -1,16 +1,19 @@
 #include <iostream>
 #include <stdio.h>
-#include <string.h>
-#include <time.h>
+#include <cstring>
 #include <stdlib.h>
 #include <fstream>
-#include "test.h"
+#include "test.hpp"
 using namespace std;
-#define TEST 500
-#define MIN_K 16
-#define MAX_K 16
-#define MINLEN 1024
-#define MAXLEN 1024
+
+#define TEST 100
+#define MIN_CHAR 'a'
+#define MAX_CHAR 'h'
+#define MIN_K 4
+#define MAX_K 4
+#define MINLEN 512
+#define MAXLEN 512
+#define PRINTERROR 1
 
 char str_1[MAXLEN + 10];
 char str_2[MAXLEN + 10];
@@ -18,16 +21,46 @@ int k;
 int n;
 int error = 0;
 int correct = 0;
-clock_t clock_00 = 0;
-clock_t clock_01 = 0;
-clock_t clock_02 = 0;
-clock_t clock_03 = 0;
-clock_t clock_04 = 0;
-clock_t clock_01_matchlist = 0;
-clock_t clock_02_matchlist = 0;
-clock_t clock_03_matchlist = 0;
-clock_t clock_04_matchlist = 0;
+clock_t clock_DP = 0;
+clock_t clock_Sparse = 0;
+clock_t clock_Dense = 0;
+clock_t clock_Sparse_matchlist = 0;
+clock_t clock_Dense_matchlist = 0;
+unsigned long long LCSk_sum = 0;
 
+void print_head() {
+    for(int i = 0; i < 52; i++) {
+        printf("-");
+    }
+    printf("\n");
+    printf("| %-14s | %-14s | %-14s |\n", "Algorithm", "Totol T", "Average T");
+    for(int i = 0; i < 52; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
+
+void print_row(const char *algo, clock_t time, int times) {
+    printf("| %-14s |", algo);
+    printf(" %-13.6fs |", (double)(time) / (double)CLOCKS_PER_SEC);
+    printf(" %-13.6fs |\n", ((double)(time) / (double)CLOCKS_PER_SEC) / (double)times);
+}
+
+void print_lastrow() {
+    for(int i = 0; i < 52; i++) {
+        printf("-");
+    }
+    printf("\n");
+    for(int i = 0; i < 52; i++) {
+        printf("-");
+    }
+    printf("\n");
+    printf("| %-14s | %-31.4f |\n", "Average LCSk", (double)LCSk_sum / (double)correct);
+    for(int i = 0; i < 52; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
 
 void PrintProcess(unsigned int percent) {
     /* 进度条缓冲区 */
@@ -38,26 +71,27 @@ void PrintProcess(unsigned int percent) {
     if (percent <= 100)
     {
         memset(processbar, '>', percent / 2);
-        printf("testing: [%s] %d%%\r", processbar, percent);
+        printf("Testing: [%s] %d%%\r", processbar, percent);
         /* 绘制完成后的进度条 */
     }
     else
     {
         memset(processbar, '>', 50);
-        printf("testing: [%s] Done\r", processbar);
+        printf("Testing: [%s] Done\r", processbar);
         printf("\n\n");
-        printf("correct: %d\n", correct);
-        printf("error: %d\n", error);
-        printf("total time 0: %.8fs\n", (double)(clock_00) / (double)CLOCKS_PER_SEC);
-        printf("total time 1: %.8fs\n", (double)(clock_01) / (double)CLOCKS_PER_SEC);
-        printf("total time 1(no matchlist): %.8fs\n", (double)(clock_01 - clock_01_matchlist) / (double)CLOCKS_PER_SEC);
-        printf("total time 2: %.8fs\n", (double)(clock_02) / (double)CLOCKS_PER_SEC);
-        printf("total time 2(no matchlist): %.8fs\n", (double)(clock_02 - clock_02_matchlist) / (double)CLOCKS_PER_SEC);
-        printf("total time 3: %.8fs\n", (double)(clock_03) / (double)CLOCKS_PER_SEC);
-        printf("total time 3(no matchlist): %.8fs\n", (double)(clock_03 - clock_03_matchlist) / (double)CLOCKS_PER_SEC);
-        printf("total time 4: %.8fs\n", (double)(clock_04) / (double)CLOCKS_PER_SEC);
-        printf("total time 4(no matchlist): %.8fs\n", (double)(clock_04 - clock_04_matchlist) / (double)CLOCKS_PER_SEC);
-
+#if PRINTERROR
+        printf("Correct: %d\n", correct);
+        printf("Error: %d\n", error);
+#endif
+        print_head();
+        print_row("DP", clock_DP, TEST);
+        print_row("Matchlist", (clock_Sparse_matchlist + clock_Dense_matchlist) / 2, 2 * TEST);
+        // print_row("Matchlist", clock_Sparse_matchlist, TEST);
+        print_row("Sparse", clock_Sparse, TEST);
+        print_row("Sparse(core)", clock_Sparse - clock_Sparse_matchlist, TEST);
+        print_row("Dense", clock_Dense, TEST);
+        print_row("Dense(core)", clock_Dense - clock_Dense_matchlist, TEST);
+        print_lastrow();
     }
     fflush(stdout);
 }
@@ -69,60 +103,45 @@ int main()
     correct = 0;
     // srand((unsigned)time(NULL));
     srand(clock());
-    printf("\ntest information:\nn: %d~%d\nk: %d~%d\ntest cases: %d\n\n", MINLEN, MAXLEN, MIN_K, MAX_K, TEST);
+    printf("\ntest information:\nn: %d~%d\nk: %d~%d\nchar: %c~%c\ntest cases: %d\n\n", MINLEN, MAXLEN, MIN_K, MAX_K, MIN_CHAR, MAX_CHAR, TEST);
     for(int i = 0; i < TEST; i++) {
         memset(str_1, 0, sizeof(str_1));
         memset(str_2, 0, sizeof(str_2));
         k = MIN_K + rand() % (MAX_K - MIN_K + 1);
         n = MINLEN + rand() % (MAXLEN - MINLEN + 1);
         for(int j = 0; j < n; j++) {
-            str_1[j] = 'a' + rand() % ('z' - 'a' + 1);
-            str_2[j] = 'a' + rand() % ('z' - 'a' + 1);
+            str_1[j] = MIN_CHAR + rand() % (MAX_CHAR - MIN_CHAR + 1);
+            str_2[j] = MIN_CHAR + rand() % (MAX_CHAR - MIN_CHAR + 1);
         }
         str_1[n] = '\0';
         str_2[n] = '\0';
 
         clock_t start_t, end_t;
         start_t = clock();
-        int test_00_res = get_res_test_00(k, n, str_1, str_2);
+        int test_DP_res = get_res_test_DP(k, n, str_1, str_2);
         end_t = clock();
-        clock_00 += (end_t - start_t);
+        clock_DP += (end_t - start_t);
 
         start_t = clock();
-        int test_01_res = get_res_test_01(k, n, str_1, str_2);
-        // int test_01_res = 0;
+        int test_Sparse_res = get_res_test_Sparse(k, n, str_1, str_2);
         end_t = clock();
-        clock_01 += (end_t - start_t);
+        clock_Sparse += (end_t - start_t);
 
         start_t = clock();
-        int test_02_res = get_res_test_02(k, n, str_1, str_2);
-        // int test_02_res = test_00_res;
+        int test_Dense_res = get_res_test_Dense(k, n, str_1, str_2);
+        // int test_Dense_res = test_DP_res;
         end_t = clock();
-        clock_02 += (end_t - start_t);
+        clock_Dense += (end_t - start_t);
 
-        start_t = clock();
-        int test_03_res = get_res_test_03(k, n, str_1, str_2);
-        // int test_03_res = test_00_res;
-        end_t = clock();
-        clock_03 += (end_t - start_t);
-
-        start_t = clock();
-        int test_04_res = get_res_test_04(k, n, str_1, str_2);
-        // int test_04_res = test_00_res;
-        end_t = clock();
-        clock_04 += (end_t - start_t);
-
-        
-        
-
-        if(test_00_res == test_01_res && test_01_res == test_02_res && test_02_res == test_03_res && test_03_res == test_04_res) {
+        if(test_DP_res == test_Sparse_res && test_DP_res == test_Dense_res) {
             correct++;
+            LCSk_sum += test_DP_res;
         }
         else {
             error++;
-            char Buf[4096];
+            char Buf[MAXLEN * 2 + 128];
             memset(Buf, 0, sizeof(Buf));
-            sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_00_res: %d\ntest_01_res: %d\ntest_02_res: %d\ntest_03_res: %d\ntest_04_res: %d\n\n", error, n, k, str_1, str_2, test_00_res, test_01_res, test_02_res, test_03_res, test_04_res);
+            sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_DP_res: %d\ntest_Sparse_res: %d\ntest_Dense_res: %d\n\n", error, n, k, str_1, str_2, test_DP_res, test_Sparse_res, test_Dense_res);
             fputs(Buf, file);
         }
         PrintProcess((i * 100) / TEST);
@@ -130,28 +149,4 @@ int main()
     PrintProcess(101);
     fclose(file);
     return 0;
-    // printf("bbb\n");
 }
-
-// int main()
-// {
-//     const char *A;
-//     const char *B;
-//     A = "gvohhbnouxfyhvndqzvqkhvibomoqpmbshlsruygkhitjgfympfvknwlpiqznvrwdcwlpswuxmhqwrjucywgl";
-//     B = "oevjbebjcwfievavyfjcrzxrfgmujfuccnyvbofzuzybkvjzhxjzrkvhsydahuvdlkxgzndoeonxnppoxykny";
-//     for(int i = 0; i < 85; i++) {
-//         str_1[i] = A[i];
-//         str_2[i] = B[i];
-//     }
-//     cout << get_res_test_01(2, 85, str_1, str_2) << endl;
-//     cout << get_res_test_02(2, 85, str_1, str_2) << endl;
-//     A = "ggwwxxdhqgslegxmsasjdxmbdykxlagqeqnnhauxmvfpxcdhlgyvgabyumnrsqqewgibypapkwejmvbioupmb";
-//     B = "pvxsgieruubzbjddspxpgihcjxjqdkmzqwzsltdxvwsspguhxatfxaxntzbkwxxdmubobzpvbxoyccbyoyynd";
-//     for(int i = 0; i < 85; i++) {
-//         str_1[i] = A[i];
-//         str_2[i] = B[i];
-//     }
-//     cout << get_res_test_01(2, 85, str_1, str_2) << endl;
-//     cout << get_res_test_02(2, 85, str_1, str_2) << endl;
-//     return 0;
-// }

@@ -1,5 +1,5 @@
-#ifndef TEST_H
-#define TEST_H
+#ifndef TEST_HPP
+#define TEST_HPP
 #include <time.h>
 extern clock_t clock_Sparse_matchlist;
 extern clock_t clock_Dense_matchlist;
