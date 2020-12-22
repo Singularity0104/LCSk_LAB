@@ -6,6 +6,7 @@
 #include "test.hpp"
 using namespace std;
 
+#define PRINTERROR 1
 #define TEST 100
 #define MIN_CHAR 'a'
 #define MAX_CHAR 'h'
@@ -13,7 +14,6 @@ using namespace std;
 #define MAX_K 4
 #define MINLEN 512
 #define MAXLEN 512
-#define PRINTERROR 1
 
 char str_1[MAXLEN + 10];
 char str_2[MAXLEN + 10];
@@ -78,6 +78,7 @@ int main()
             correct++;
             LCSk_sum += test_DP_res;
         }
+#if PRINTERROR
         else
         {
             error++;
@@ -86,6 +87,7 @@ int main()
             sprintf(Buf, "Error Case %d\nn: %d\nk: %d\nstr_1: %s\nstr_2: %s\ntest_DP_res: %d\ntest_Sparse_res: %d\ntest_Dense_res: %d\n\n", error, n, k, str_1, str_2, test_DP_res, test_Sparse_res, test_Dense_res);
             fputs(Buf, file);
         }
+#endif
         PrintProcess((i * 100) / TEST);
     }
     PrintProcess(101);

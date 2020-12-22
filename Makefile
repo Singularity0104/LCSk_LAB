@@ -5,4 +5,4 @@ main: test_point.o MatchList.o test_DP.o test_Sparse.o test_Dense.o
 run: main
 	./main
 clean:
-	rm ./main *.o
+	rm ./main *.o *.txt
