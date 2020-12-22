@@ -22,6 +22,7 @@ int n;
 int error = 0;
 int correct = 0;
 unsigned long long LCSk_sum = 0;
+unsigned long long LCSk_max = 0;
 clock_t clock_DP = 0;
 clock_t clock_Sparse = 0;
 clock_t clock_Dense = 0;
@@ -77,6 +78,9 @@ int main()
         {
             correct++;
             LCSk_sum += test_DP_res;
+            if(test_DP_res > LCSk_max) {
+                LCSk_max = test_DP_res;
+            }
         }
 #if PRINTERROR
         else
@@ -129,6 +133,12 @@ void print_lastrow()
         printf("-");
     }
     printf("\n");
+    for (int i = 0; i < 52; i++)
+    {
+        printf("-");
+    }
+    printf("\n");
+    printf("| %-14s | %-31lld |\n", "maximal LCSk", LCSk_max);
     for (int i = 0; i < 52; i++)
     {
         printf("-");
